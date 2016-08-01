@@ -27,6 +27,10 @@ public class MainActivity extends AppCompatActivity {
         }
         ArrayAdapter<String> tagListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, tagList.toArray(new String[0]));
         tag_list.setAdapter(tagListAdapter);
+
+        ListView recipe_list = (ListView) findViewById(R.id.recipe_list);
+        EditListAdapter recipeListAdapter = new EditListAdapter(this, tagList);
+        recipe_list.setAdapter(recipeListAdapter);
     }
 
     public void deleteClick(View delButton)
