@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Recipe Organizer</string>
+    <string name="tags_label">Tags</string>
+    <string name="recipes_label">Recipes</string>
+    <string name="search_text">Search</string>
+</resources>
