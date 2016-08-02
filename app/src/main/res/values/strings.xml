@@ -3,4 +3,5 @@
     <string name="tags_label">Tags</string>
     <string name="recipes_label">Recipes</string>
     <string name="search_text">Search</string>
+    <string name="action_settings">Settings</string>
 </resources>

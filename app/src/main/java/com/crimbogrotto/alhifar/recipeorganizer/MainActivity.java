@@ -1,6 +1,7 @@
 package com.crimbogrotto.alhifar.recipeorganizer;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -37,5 +38,11 @@ public class MainActivity extends AppCompatActivity {
     {
         EditText tag_search = (EditText) findViewById(R.id.tag_search);
         tag_search.setText("");
+    }
+
+    public void recipeClick(View recipeView)
+    {
+        Intent intent = new Intent(this, PDFDisplayActivity.class);
+        startActivity(intent);
     }
 }
