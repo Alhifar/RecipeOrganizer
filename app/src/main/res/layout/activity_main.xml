@@ -3,6 +3,7 @@
     android:orientation="vertical"
     android:layout_height="match_parent"
     android:layout_width="match_parent"
+    android:background="#000000"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <android.support.v7.widget.Toolbar
         android:id="@+id/main_toolbar"
@@ -12,8 +13,6 @@
         android:elevation="4dp"
         android:theme="@style/AppTheme"
         android:popupTheme="@style/AppTheme" />
-        <!--android:theme="@style/ThemeOverlay.AppCompat.ActionBar"-->
-        <!--app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>-->
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:orientation="horizontal"
@@ -51,8 +50,10 @@
                     android:singleLine="true"
                     android:hint="@string/search_text"/>
                 <ImageView
+                    android:id="@+id/delete_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:elevation="2dp"
                     android:layout_gravity="center_vertical"
                     android:src="@android:drawable/ic_delete"
                     android:onClick="deleteClick"/>

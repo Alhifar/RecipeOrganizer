@@ -59,7 +59,8 @@ public class PDFDisplayActivity extends AppCompatActivity {
 
         //File dir = Environment.getExternalStorageDirectory();
         //File pdf = new File(dir, "test.pdf");
-        File pdf = getApplicationContext().getFileStreamPath("test.pdf");
+        String id = getIntent().getStringExtra("id");
+        File pdf = getApplicationContext().getFileStreamPath("test"+id+".pdf");
 
         PdfRenderer pdfRenderer = null;
         try {
@@ -87,6 +88,9 @@ public class PDFDisplayActivity extends AppCompatActivity {
                     page.close();
                 }
                 ((ImageView) findViewById(R.id.pdf)).setImageBitmap(pageImage);
+
+                //Immediately scroll image to top of page
+                ((ImageView) findViewById(R.id.pdf)).scrollBy(0,-1 * (int)(((height * pageCount) / 2) - (size.y / 2)));
             }
 
         } catch (FileNotFoundException e) {
@@ -105,8 +109,8 @@ public class PDFDisplayActivity extends AppCompatActivity {
         int maxY = (int)(((height * pageCount) / 2) - (size.y / 2));
 
         // set scroll limits
-        final int maxTop = (maxY * -1);
-        final int maxBottom = maxY;
+        final int maxTop = 0;
+        final int maxBottom = maxY * 2;
 
         final ImageView scrollingImageView = (ImageView) this.findViewById(R.id.pdf);
 
