@@ -1,4 +1,4 @@
-package com.crimbogrotto.alhifar.recipeorganizer;
+package com.crimbogrotto.alhifar.recipeorganizer.adapter;
 
 import android.app.Activity;
 import android.content.Context;
@@ -7,6 +7,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
+
+import com.crimbogrotto.alhifar.recipeorganizer.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;

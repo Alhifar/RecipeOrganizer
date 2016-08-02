@@ -1,17 +1,10 @@
-package com.crimbogrotto.alhifar.recipeorganizer;
+package com.crimbogrotto.alhifar.recipeorganizer.activity;
 
-import android.app.Activity;
-import android.content.res.AssetManager;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.pdf.PdfRenderer;
-import android.media.Image;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Display;
@@ -19,12 +12,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 
+import com.crimbogrotto.alhifar.recipeorganizer.R;
+
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 /**
  * Created by Alhifar on 8/1/2016.
