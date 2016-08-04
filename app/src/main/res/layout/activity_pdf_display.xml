@@ -2,8 +2,17 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/redrectangle"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@drawable/recipe_background"
     android:id="@+id/pdf_layout">
+    <com.bhargavms.dotloader.DotLoader
+        android:id="@+id/text_dot_loader"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:color_array="@array/dot_colors"
+        app:dot_radius="10dp"
+        app:number_of_dots="6"/>
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
