@@ -219,32 +219,21 @@ public class PDFDisplayActivity extends AppCompatActivity {
 
     private Bitmap trimWhitespace(Bitmap bm)
     {
+        final int ROWS_CHECKED = 50;
+
         Boolean allWhiteRow;
         int allWhiteRowCount = 0;
-        Bitmap finalBm = null;
         int bmWidth = bm.getWidth();
         int bmHeight = bm.getHeight();
         int[] newBm = new int[bmHeight*bmWidth];
-        //int[] pixels = new int[bmHeight*bmWidth];
-        //bm.getPixels(pixels, 0, bmWidth, 0, 0, bmWidth, bmHeight);
+        int[] pixels = new int[bmHeight*bmWidth];
+        bm.getPixels(pixels, 0, bmWidth, 0, 0, bmWidth, bmHeight);
         int offset = 0;
-
-        int n = 0;
 
         for (int y=100;y<bm.getHeight();y++) //start at 100 to avoid trimming top whitespace
         {
             allWhiteRow = true;
-            for (int x=0;x<bm.getWidth();x++)
-            {
-                int currentPixel = bm.getPixel(x,y);
-                if (currentPixel != Color.WHITE && currentPixel != Color.TRANSPARENT )
-                {
-                    allWhiteRow = false;
-                    allWhiteRowCount = 0;
-                    break;
-                }
-            }
-            /*for (int x=0;x<bmWidth;x++)
+            for (int x=0;x<bmWidth;x++)
             {
                 int currentPixel = ((y + offset) * bmWidth) + x;
                 if (pixels[currentPixel] != Color.WHITE && pixels[currentPixel] != Color.TRANSPARENT )
@@ -253,36 +242,23 @@ public class PDFDisplayActivity extends AppCompatActivity {
                     allWhiteRowCount = 0;
                     break;
                 }
-                else
-                {
-                    Log.d("pixelChecker", "nonwhite");
-                }
-            }*/
+            }
             if (allWhiteRow)
             {
                 allWhiteRowCount += 1;
             }
-            if (allWhiteRowCount == 25)
+            if (allWhiteRowCount == ROWS_CHECKED)
             {
                 int oldHeight = bm.getHeight();
-                int newSize = bmWidth * (oldHeight - 24);
-                //newBm = new int[newSize];
-                bm.getPixels(newBm, 0, bmWidth, 0, 0, bmWidth, y - 25);
-                bm.getPixels(newBm, bmWidth * (y-25), bmWidth, 0, y, bmWidth, oldHeight - y);
-                //bm.getPixels(newBm, 0, oldWidth, 0, 0, oldWidth, y - 25 + offset);
-                //bm.getPixels(newBm, oldWidth * ( y - 25 + offset), bm.getWidth(), 0, y, oldWidth, oldHeight - y);
-/*                for (int i=0;i<bmWidth;i++) {
-                    newBm[(bmWidth*y)+i]=Color.BLACK;
-                }*/
+                bm.getPixels(newBm, 0, bmWidth, 0, 0, bmWidth, y - ROWS_CHECKED);
+                bm.getPixels(newBm, bmWidth * (y - ROWS_CHECKED), bmWidth, 0, y, bmWidth, oldHeight - y);
                 Runtime.getRuntime().gc(); // Android doesn't attempt to gc if out of memory for bitmaps
-                bm = Bitmap.createBitmap(newBm, bmWidth, oldHeight - 25, Bitmap.Config.ARGB_8888);
+                bm = Bitmap.createBitmap(newBm, bmWidth, oldHeight - ROWS_CHECKED, Bitmap.Config.ARGB_8888);
                 allWhiteRowCount = 0;
-                //offset += 25;
-                y -= 25;
-                n++;
+                offset += ROWS_CHECKED;
+                y -= ROWS_CHECKED;
             }
         }
-        newBm=null;
         return bm;
     }
 }
