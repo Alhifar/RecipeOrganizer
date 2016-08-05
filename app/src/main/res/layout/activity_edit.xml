@@ -1,58 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000">
-    <LinearLayout
-        android:orientation="vertical"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@drawable/recipe_background">
+        android:fillViewport="true">
         <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
+            android:layout_height="match_parent"
+            android:background="@drawable/recipe_background">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/title_label"/>
+                <EditText
+                    android:id="@+id/title_edit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="15"
+                    android:singleLine="true"/>
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/edit_tag_list"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/title_label"/>
-            <EditText
-                android:id="@+id/title_edit"
-                android:layout_width="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tags_label"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <AutoCompleteTextView
+                        android:id="@+id/tag1_edit"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:ems="15"
+                        android:layout_weight="1"
+                        android:singleLine="true"/>
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:onClick="addTag"
+                        android:src="@android:drawable/ic_input_add"/>
+                </LinearLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:width="10dp"
-                android:singleLine="true"/>
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/tags_label"/>
-            <AutoCompleteTextView
-                android:id="@+id/tag1_edit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:width="10dp"
-                android:singleLine="true"/>
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
 
-                android:text="@string/filename_label"/>
-            <EditText
-                android:id="@+id/filename_edit"
+                    android:text="@string/filename_label"/>
+                <AutoCompleteTextView
+                    android:id="@+id/filename_edit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="15"
+                    android:singleLine="true"/>
+            </LinearLayout>
+            <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:width="10dp"
-                android:singleLine="true"/>
+                android:text="@string/save_button"
+                android:onClick="saveClick"/>
         </LinearLayout>
-    </LinearLayout>
-</RelativeLayout>
+    </ScrollView>
+</LinearLayout>

@@ -45,7 +45,8 @@ public class MainActivity extends AppCompatActivity {
 
         Bitmap deleteImage = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_delete);
         Bitmap dropShadowDeleteImage = createShadowBitmap(deleteImage);
-        ((ImageView) findViewById(R.id.delete_button)).setImageBitmap(dropShadowDeleteImage);
+        View deleteButton = findViewById(R.id.delete_button);
+        ((ImageView) deleteButton).setImageBitmap(dropShadowDeleteImage);
 
         ListView tag_list = (ListView) findViewById(R.id.tag_list);
         ArrayList<String> tagList = new ArrayList<String>();
