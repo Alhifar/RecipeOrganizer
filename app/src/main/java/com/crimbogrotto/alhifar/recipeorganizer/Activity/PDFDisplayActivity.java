@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.pdf.PdfRenderer;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.support.v7.app.AppCompatActivity;
@@ -53,7 +54,6 @@ public class PDFDisplayActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pdf_display);
 
-        final PDFDisplayActivity th = this;
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -65,12 +65,13 @@ public class PDFDisplayActivity extends AppCompatActivity {
                         ViewGroup layout = (ViewGroup)findViewById(R.id.pdf_layout);
                         layout.removeView(findViewById(R.id.text_dot_loader));
                         layout.invalidate();
-                        Log.d("PDFThread", "Done");
                     }
                 });
             }
         }).start();
-
+        // Doesn't seem to be automatically running gc at
+        // a reasonable time to clean up after all the bitmaps
+        Runtime.getRuntime().gc();
     }
 
     private void setImage(Bitmap finalPageImage)
@@ -79,10 +80,14 @@ public class PDFDisplayActivity extends AppCompatActivity {
         Point size = new Point();
         display.getSize(size);
 
-        ((ImageView) findViewById(R.id.pdf)).setImageBitmap(finalPageImage);
+        final ImageView pdfView = ((ImageView) findViewById(R.id.pdf));
+
+        pdfView.setMinimumHeight(size.y);
+        pdfView.setImageBitmap(finalPageImage);
+
 
         //Immediately scroll image to top of page
-        ((ImageView) findViewById(R.id.pdf)).scrollBy(0,-1 * (int)((finalPageImage.getHeight() / 2) - (size.y / 2)));
+        pdfView.scrollBy(0,-1 * (int)((finalPageImage.getHeight() / 2) - (size.y / 2)));
 
         // set maximum scroll amount (based on center of image)
         int maxY = (int)((finalPageImage.getHeight() / 2) - (size.y / 2));
@@ -91,9 +96,7 @@ public class PDFDisplayActivity extends AppCompatActivity {
         final int maxTop = 0;
         final int maxBottom = (maxY * 2) + size.y;
 
-        final ImageView scrollingImageView = (ImageView) findViewById(R.id.pdf);
-
-        scrollingImageView.setOnTouchListener(new View.OnTouchListener()
+        pdfView.setOnTouchListener(new View.OnTouchListener()
         {
             float downX, downY;
             int totalX, totalY;
@@ -148,7 +151,7 @@ public class PDFDisplayActivity extends AppCompatActivity {
                             }
                         }
 
-                        scrollingImageView.scrollBy(scrollByX, scrollByY);
+                        pdfView.scrollBy(scrollByX, scrollByY);
                         downY = currentY;
                         break;
 
@@ -168,8 +171,8 @@ public class PDFDisplayActivity extends AppCompatActivity {
         int height = 0;
         int pageCount = 0;
         Bitmap finalImage = null;
-        String id = getIntent().getStringExtra("id");
-        File pdf = getApplicationContext().getFileStreamPath("test"+id+".pdf");
+        String filename = getIntent().getStringExtra("filename");
+        File pdf = getApplicationContext().getFileStreamPath(filename);
 
         PdfRenderer pdfRenderer = null;
         try {
@@ -261,10 +264,9 @@ public class PDFDisplayActivity extends AppCompatActivity {
             }
             if (allWhiteRowCount == 25)
             {
-                Log.d("replacement", "iter " + n);
                 int oldHeight = bm.getHeight();
                 int newSize = bmWidth * (oldHeight - 24);
-                newBm = new int[newSize];
+                //newBm = new int[newSize];
                 bm.getPixels(newBm, 0, bmWidth, 0, 0, bmWidth, y - 25);
                 bm.getPixels(newBm, bmWidth * (y-25), bmWidth, 0, y, bmWidth, oldHeight - y);
                 //bm.getPixels(newBm, 0, oldWidth, 0, 0, oldWidth, y - 25 + offset);
@@ -272,6 +274,7 @@ public class PDFDisplayActivity extends AppCompatActivity {
 /*                for (int i=0;i<bmWidth;i++) {
                     newBm[(bmWidth*y)+i]=Color.BLACK;
                 }*/
+                Runtime.getRuntime().gc(); // Android doesn't attempt to gc if out of memory for bitmaps
                 bm = Bitmap.createBitmap(newBm, bmWidth, oldHeight - 25, Bitmap.Config.ARGB_8888);
                 allWhiteRowCount = 0;
                 //offset += 25;

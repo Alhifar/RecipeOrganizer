@@ -64,12 +64,13 @@ public class EditListAdapter extends BaseAdapter implements Filterable {
         }
         TextView textView = (TextView) vi.findViewById(R.id.text);
         HashMap<String, String> item = filteredData.get(position);
-        String text = item.get("text");
+        String text = item.get("title");
         textView.setText(text);
-        int id = Integer.parseInt(item.get("id"));
-        textView.setTag(id);
+        textView.setTag(item);
 
-        ((ImageView) vi.findViewById(R.id.edit_image)).setImageBitmap(dropShadowEditImage);
+        ImageView pdfImage = (ImageView) vi.findViewById(R.id.edit_image);
+        pdfImage.setTag(item);
+        pdfImage.setImageBitmap(dropShadowEditImage);
 
         return vi;
     }
@@ -98,7 +99,7 @@ public class EditListAdapter extends BaseAdapter implements Filterable {
 
                 for (int i = 0; i < list.size(); i++) {
                     item = list.get(i);
-                    filterableString = item.get("text");
+                    filterableString = item.get("title");
                     if (filterableString.toLowerCase().contains(filterString)) {
                         newList.add(item);
                     }

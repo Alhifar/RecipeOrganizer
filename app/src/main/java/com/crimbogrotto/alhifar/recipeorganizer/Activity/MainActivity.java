@@ -1,10 +1,13 @@
 package com.crimbogrotto.alhifar.recipeorganizer.activity;
 
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -22,11 +25,14 @@ import android.widget.TextView;
 
 import com.crimbogrotto.alhifar.recipeorganizer.adapter.EditListAdapter;
 import com.crimbogrotto.alhifar.recipeorganizer.R;
+import com.crimbogrotto.alhifar.recipeorganizer.db.RecipeContract;
+import com.crimbogrotto.alhifar.recipeorganizer.db.RecipeDbHelper;
 
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     @Override
@@ -50,17 +56,49 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> tagListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, tagList.toArray(new String[0]));
         tag_list.setAdapter(tagListAdapter);
 
-        ArrayList<HashMap<String,String>> recipeList = new ArrayList<HashMap<String,String>>();
-        for (int i=0;i<10;i++)
+        ArrayList<HashMap<String,String>> recipeList = getRecipeList();
+        /*for (int i=0;i<10;i++)
         {
             HashMap<String, String> data = new HashMap<String, String>();
             data.put("text", "Test " + i);
             data.put("id", Integer.toString(i));
             recipeList.add(data);
-        }
+        }*/
         ListView recipe_list = (ListView) findViewById(R.id.recipe_list);
         EditListAdapter recipeListAdapter = new EditListAdapter(this, recipeList);
         recipe_list.setAdapter(recipeListAdapter);
+    }
+
+    private ArrayList<HashMap<String,String>> getRecipeList() {
+        ArrayList<HashMap<String,String>> recipeList = new ArrayList<HashMap<String, String>>();
+        RecipeDbHelper dbHelper = new RecipeDbHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String[] projection = {
+                RecipeContract.RecipeEntry._ID,
+                RecipeContract.RecipeEntry.COLUMN_NAME_TITLE,
+                RecipeContract.RecipeEntry.COLUMN_NAME_TAGS,
+                RecipeContract.RecipeEntry.COLUMN_NAME_FILENAME
+        };
+
+        String sortOrder = RecipeContract.RecipeEntry._ID + " DESC";
+
+        try(Cursor c = db.query(RecipeContract.RecipeEntry.TABLE_NAME, projection, null, null, null, null, sortOrder))
+        {
+            while (c.moveToNext()) {
+                HashMap<String, String> hm = new HashMap<String, String>();
+                hm.put("id", c.getString(c.getColumnIndex(RecipeContract.RecipeEntry._ID)));
+                hm.put("title", c.getString(c.getColumnIndex(RecipeContract.RecipeEntry.COLUMN_NAME_TITLE)));
+                hm.put("tags", c.getString(c.getColumnIndex(RecipeContract.RecipeEntry.COLUMN_NAME_TAGS)));
+                hm.put("filename", c.getString(c.getColumnIndex(RecipeContract.RecipeEntry.COLUMN_NAME_FILENAME)));
+                recipeList.add(hm);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return recipeList;
     }
 
     @Override
@@ -124,11 +162,25 @@ public class MainActivity extends AppCompatActivity {
         tag_search.setText("");
     }
 
+    @SuppressWarnings("unchecked")
     public void recipeClick(View recipeView)
     {
         Intent intent = new Intent(this, PDFDisplayActivity.class);
-        TextView tv = (TextView) recipeView;
-        intent.putExtra("id", tv.getTag().toString());
+        for (Map.Entry<String, String> entry : ((HashMap<String, String>)recipeView.getTag()).entrySet())
+        {
+            intent.putExtra(entry.getKey(), entry.getValue());
+        }
+        startActivity(intent);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void editClick(View editButton)
+    {
+        Intent intent = new Intent(this, EditActivity.class);
+        for (Map.Entry<String, String> entry : ((HashMap<String, String>)editButton.getTag()).entrySet())
+        {
+            intent.putExtra(entry.getKey(), entry.getValue());
+        }
         startActivity(intent);
     }
 }
