@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -69,8 +70,17 @@ public class EditListAdapter extends BaseAdapter implements Filterable {
         textView.setTag(item);
 
         ImageView pdfImage = (ImageView) vi.findViewById(R.id.edit_image);
-        pdfImage.setTag(item);
-        pdfImage.setImageBitmap(dropShadowEditImage);
+        if (!item.get("id").equals("-1"))
+        {
+            pdfImage.setTag(item);
+            pdfImage.setImageBitmap(dropShadowEditImage);
+        }
+        else
+        {
+            textView.setTextColor(Color.DKGRAY);
+            ((ViewGroup)vi).removeView(pdfImage);
+            textView.setOnClickListener(MainActivity.addRecipe);
+        }
 
         return vi;
     }

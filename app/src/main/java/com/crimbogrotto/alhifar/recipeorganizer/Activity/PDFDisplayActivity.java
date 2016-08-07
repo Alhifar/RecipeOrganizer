@@ -7,6 +7,7 @@ import android.graphics.Point;
 import android.graphics.pdf.PdfRenderer;
 import android.media.Image;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -19,13 +20,17 @@ import android.widget.ImageView;
 import com.crimbogrotto.alhifar.recipeorganizer.R;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Created by Alhifar on 8/1/2016.
  */
 public class PDFDisplayActivity extends AppCompatActivity {
+
+    private Bitmap pdfImage;
 
     public Bitmap combineImages(Bitmap c, Bitmap s) {
         Bitmap cs = null;
@@ -57,11 +62,15 @@ public class PDFDisplayActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final Bitmap finalPageImage = generateImageFromPdf();
+                pdfImage = generateImageFromPdf();
+                // Doesn't seem to be automatically running gc at
+                // a reasonable time to clean up after all the bitmaps
+                Runtime.getRuntime().gc();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        setImage(finalPageImage);
+                        setImage(pdfImage);
+                        //pdfImage.recycle();
                         ViewGroup layout = (ViewGroup)findViewById(R.id.pdf_layout);
                         layout.removeView(findViewById(R.id.text_dot_loader));
                         layout.invalidate();
@@ -69,9 +78,14 @@ public class PDFDisplayActivity extends AppCompatActivity {
                 });
             }
         }).start();
-        // Doesn't seem to be automatically running gc at
-        // a reasonable time to clean up after all the bitmaps
-        Runtime.getRuntime().gc();
+
+    }
+
+    @Override
+    protected void onStop()
+    {
+        super.onStop();
+        pdfImage.recycle();
     }
 
     private void setImage(Bitmap finalPageImage)
@@ -98,12 +112,12 @@ public class PDFDisplayActivity extends AppCompatActivity {
 
         pdfView.setOnTouchListener(new View.OnTouchListener()
         {
-            float downX, downY;
-            int totalX, totalY;
-            int scrollByX, scrollByY;
+            float downY;
+            int totalY;
+            int scrollByY;
             public boolean onTouch(View view, MotionEvent event)
             {
-                float currentX, currentY;
+                float currentY;
                 switch (event.getAction())
                 {
                     case MotionEvent.ACTION_DOWN:
@@ -112,7 +126,6 @@ public class PDFDisplayActivity extends AppCompatActivity {
 
                     case MotionEvent.ACTION_MOVE:
                         currentY = event.getY();
-                        scrollByX = 0;
                         scrollByY = (int)(downY - currentY);
 
                         // scrolling to top of image (pic moving to the bottom)
@@ -151,7 +164,7 @@ public class PDFDisplayActivity extends AppCompatActivity {
                             }
                         }
 
-                        pdfView.scrollBy(scrollByX, scrollByY);
+                        pdfView.scrollBy(0, scrollByY);
                         downY = currentY;
                         break;
 
@@ -162,8 +175,7 @@ public class PDFDisplayActivity extends AppCompatActivity {
         });
     }
 
-    private Bitmap generateImageFromPdf()
-    {
+    private Bitmap generateImageFromPdf(){
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
@@ -172,7 +184,8 @@ public class PDFDisplayActivity extends AppCompatActivity {
         int pageCount = 0;
         Bitmap finalImage = null;
         String filename = getIntent().getStringExtra("filename");
-        File pdf = getApplicationContext().getFileStreamPath(filename);
+        File dir = Environment.getExternalStoragePublicDirectory("Recipes");
+        File pdf = new File(dir, filename);
 
         PdfRenderer pdfRenderer = null;
         try {
@@ -185,11 +198,11 @@ public class PDFDisplayActivity extends AppCompatActivity {
 
                 PdfRenderer.Page page = pdfRenderer.openPage(0);
 
-                width = size.x;
-                height = (int)Math.floor(((float)width / page.getWidth()) * page.getHeight());
+                width = (int)Math.floor(size.x);
+                height = (int)(Math.floor((((float)width / page.getWidth()) * page.getHeight())));
 
-                Bitmap pageImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-                Bitmap pageImage2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                Bitmap pageImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
+                Bitmap pageImage2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_4444);
                 page.render(pageImage, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY);
                 page.close();
                 for (int i=1;i < pageCount;i++)
@@ -206,6 +219,7 @@ public class PDFDisplayActivity extends AppCompatActivity {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
+
             e.printStackTrace();
         }
         finally {
@@ -222,13 +236,17 @@ public class PDFDisplayActivity extends AppCompatActivity {
         final int ROWS_CHECKED = 50;
 
         Boolean allWhiteRow;
+        Boolean removedRows = false;
         int allWhiteRowCount = 0;
         int bmWidth = bm.getWidth();
         int bmHeight = bm.getHeight();
+        //Bitmap trimmedBitmap = null;
         int[] newBm = new int[bmHeight*bmWidth];
         int[] pixels = new int[bmHeight*bmWidth];
         bm.getPixels(pixels, 0, bmWidth, 0, 0, bmWidth, bmHeight);
         int offset = 0;
+
+        //System.arraycopy(pixels, 0, newBm, 0, 100 * bmWidth); //get first 100 rows into array
 
         for (int y=100;y<bm.getHeight();y++) //start at 100 to avoid trimming top whitespace
         {
@@ -247,17 +265,33 @@ public class PDFDisplayActivity extends AppCompatActivity {
             {
                 allWhiteRowCount += 1;
             }
+            /*if (allWhiteRowCount == ROWS_CHECKED)
+            {
+                int oldHeight = bmHeight - offset;
+                System.arraycopy(pixels, (y + offset) * bmWidth, newBm, y,  );
+                bm.getPixels(newBm, 0, bmWidth, 0, 0, bmWidth, y - ROWS_CHECKED);
+                bm.getPixels(newBm, bmWidth * (y - ROWS_CHECKED), bmWidth, 0, y, bmWidth, oldHeight - y);
+                bm = Bitmap.createBitmap(newBm, bmWidth, oldHeight - ROWS_CHECKED, Bitmap.Config.ARGB_4444);
+                allWhiteRowCount = 0;
+                offset += ROWS_CHECKED;
+                y -= ROWS_CHECKED;
+                removedRows = true;
+            }*/
             if (allWhiteRowCount == ROWS_CHECKED)
             {
                 int oldHeight = bm.getHeight();
                 bm.getPixels(newBm, 0, bmWidth, 0, 0, bmWidth, y - ROWS_CHECKED);
                 bm.getPixels(newBm, bmWidth * (y - ROWS_CHECKED), bmWidth, 0, y, bmWidth, oldHeight - y);
-                Runtime.getRuntime().gc(); // Android doesn't attempt to gc if out of memory for bitmaps
-                bm = Bitmap.createBitmap(newBm, bmWidth, oldHeight - ROWS_CHECKED, Bitmap.Config.ARGB_8888);
+                //Runtime.getRuntime().gc(); // Android doesn't attempt to gc if out of memory for bitmaps
+                bm = Bitmap.createBitmap(newBm, bmWidth, oldHeight - ROWS_CHECKED, Bitmap.Config.ARGB_4444);
                 allWhiteRowCount = 0;
                 offset += ROWS_CHECKED;
                 y -= ROWS_CHECKED;
             }
+            /*if (removedRows)
+            {
+                trimmedBitmap = Bitmap.createBitmap(newBm, bmWidth, bmHeight - offset, Bitmap.Config.ARGB_4444);
+            }*/
         }
         return bm;
     }

@@ -75,6 +75,13 @@
                 android:layout_height="wrap_content"
                 android:text="@string/save_button"
                 android:onClick="saveClick"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="#99FF0000"
+                android:text="DELETE"
+                android:layout_gravity="right"
+                android:onClick="deleteRecipe"/>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

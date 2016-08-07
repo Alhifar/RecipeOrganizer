@@ -1,6 +1,10 @@
 package com.crimbogrotto.alhifar.recipeorganizer.activity;
 
+import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -9,14 +13,17 @@ import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -35,10 +42,41 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+    public static ArrayList<HashMap<String,String>> recipeList;
+
+    // Storage Permissions
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+
+    /**
+     * Checks if the app has permission to write to device storage
+     *
+     * If the app does not has permission then the user will be prompted to grant permissions
+     *
+     * @param activity
+     */
+    public static void verifyStoragePermissions(Activity activity) {
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        verifyStoragePermissions(this);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.main_toolbar);
         setSupportActionBar(toolbar);
@@ -57,14 +95,27 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> tagListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, tagList.toArray(new String[0]));
         tag_list.setAdapter(tagListAdapter);
 
-        ArrayList<HashMap<String,String>> recipeList = getRecipeList();
-        /*for (int i=0;i<10;i++)
-        {
-            HashMap<String, String> data = new HashMap<String, String>();
-            data.put("text", "Test " + i);
-            data.put("id", Integer.toString(i));
-            recipeList.add(data);
-        }*/
+        updateRecipeList();
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        updateRecipeList();
+    }
+
+    private void updateRecipeList()
+    {
+        recipeList = getRecipeList();
+
+        HashMap<String, String> item = new HashMap<String, String>();
+        item.put("id", "-1");
+        item.put("title", "Add new recipe");
+        item.put("tags", "");
+        item.put("filename", "");
+        recipeList.add(item);
+
         ListView recipe_list = (ListView) findViewById(R.id.recipe_list);
         EditListAdapter recipeListAdapter = new EditListAdapter(this, recipeList);
         recipe_list.setAdapter(recipeListAdapter);
@@ -82,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 RecipeContract.RecipeEntry.COLUMN_NAME_FILENAME
         };
 
-        String sortOrder = RecipeContract.RecipeEntry._ID + " DESC";
+        String sortOrder = RecipeContract.RecipeEntry.COLUMN_NAME_TITLE + " DESC";
 
         try(Cursor c = db.query(RecipeContract.RecipeEntry.TABLE_NAME, projection, null, null, null, null, sortOrder))
         {
@@ -99,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         {
             e.printStackTrace();
         }
+        db.close();
         return recipeList;
     }
 
@@ -184,4 +236,17 @@ public class MainActivity extends AppCompatActivity {
         }
         startActivity(intent);
     }
+
+    @SuppressWarnings("unchecked")
+    static public View.OnClickListener addRecipe = new View.OnClickListener() {
+        @Override
+        public void onClick(View addButton) {
+            Intent intent = new Intent(addButton.getContext(), EditActivity.class);
+            for (Map.Entry<String, String> entry : ((HashMap<String, String>)addButton.getTag()).entrySet())
+            {
+                intent.putExtra(entry.getKey(), entry.getValue());
+            }
+            addButton.getContext().startActivity(intent);
+        }
+    };
 }
