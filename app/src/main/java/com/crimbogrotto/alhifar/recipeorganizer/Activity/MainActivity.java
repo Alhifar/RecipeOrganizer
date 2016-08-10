@@ -13,17 +13,20 @@ import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -34,15 +37,22 @@ import com.crimbogrotto.alhifar.recipeorganizer.adapter.EditListAdapter;
 import com.crimbogrotto.alhifar.recipeorganizer.R;
 import com.crimbogrotto.alhifar.recipeorganizer.db.RecipeContract;
 import com.crimbogrotto.alhifar.recipeorganizer.db.RecipeDbHelper;
+import com.crimbogrotto.alhifar.recipeorganizer.db.TagContract;
+import com.crimbogrotto.alhifar.recipeorganizer.utils.StringUtils;
 
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     public static ArrayList<HashMap<String,String>> recipeList;
+    private static List<String> selectedTags = new ArrayList<String>();
 
     // Storage Permissions
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
@@ -51,24 +61,12 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    /**
-     * Checks if the app has permission to write to device storage
-     *
-     * If the app does not has permission then the user will be prompted to grant permissions
-     *
-     * @param activity
-     */
     public static void verifyStoragePermissions(Activity activity) {
-        // Check if we have write permission
         int permission = ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                    activity,
-                    PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE
-            );
+        if (permission != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, REQUEST_EXTERNAL_STORAGE);
         }
     }
 
@@ -85,17 +83,6 @@ public class MainActivity extends AppCompatActivity {
         Bitmap dropShadowDeleteImage = createShadowBitmap(deleteImage);
         View deleteButton = findViewById(R.id.delete_button);
         ((ImageView) deleteButton).setImageBitmap(dropShadowDeleteImage);
-
-        ListView tag_list = (ListView) findViewById(R.id.tag_list);
-        ArrayList<String> tagList = new ArrayList<String>();
-        for (int i=0;i<=10;i++)
-        {
-            tagList.add("Test " + i);
-        }
-        ArrayAdapter<String> tagListAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, tagList.toArray(new String[0]));
-        tag_list.setAdapter(tagListAdapter);
-
-        updateRecipeList();
     }
 
     @Override
@@ -103,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     {
         super.onResume();
         updateRecipeList();
+        updateTagList();
     }
 
     private void updateRecipeList()
@@ -119,6 +107,27 @@ public class MainActivity extends AppCompatActivity {
         ListView recipe_list = (ListView) findViewById(R.id.recipe_list);
         EditListAdapter recipeListAdapter = new EditListAdapter(this, recipeList);
         recipe_list.setAdapter(recipeListAdapter);
+    }
+
+    private void updateTagList()
+    {
+        ListView tag_list = (ListView) findViewById(R.id.tag_list);
+        ArrayList<String> tagList = getTagList();
+
+        for (int i = 0;i<tagList.size();i++)
+        {
+            String tag = tagList.get(i);
+            String[] words = TextUtils.split(tag, " ");
+            for (int n = 0;n < words.length;n++)
+            {
+                String word = words[n];
+                words[n] = StringUtils.properCase(word);
+            }
+            tag = TextUtils.join(" ", words);
+            tagList.set(i, tag);
+        }
+        ArrayAdapter<String> tagListAdapter = new ArrayAdapter<String>(this, R.layout.tag_list_item, tagList.toArray(new String[0]));
+        tag_list.setAdapter(tagListAdapter);
     }
 
     private ArrayList<HashMap<String,String>> getRecipeList() {
@@ -154,6 +163,31 @@ public class MainActivity extends AppCompatActivity {
         return recipeList;
     }
 
+    public ArrayList<String> getTagList() {
+        ArrayList<String> tagList = new ArrayList<String>();
+        RecipeDbHelper dbHelper = new RecipeDbHelper(this);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String[] projection = {
+                TagContract.TagEntry.COLUMN_NAME_TITLE
+        };
+
+        String sortOrder = TagContract.TagEntry.COLUMN_NAME_TITLE + " DESC";
+
+        try(Cursor c = db.query(TagContract.TagEntry.TABLE_NAME, projection, null, null, null, null, sortOrder))
+        {
+            while (c.moveToNext()) {
+                tagList.add(c.getString(c.getColumnIndex(RecipeContract.RecipeEntry.COLUMN_NAME_TITLE)));
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        db.close();
+        return tagList;
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -171,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String text) {
-                ((EditListAdapter)recipeList.getAdapter()).getFilter().filter(text);
+                ((EditListAdapter)recipeList.getAdapter()).getFilter().filter(EditListAdapter.FILTER_TEXT + text);
                 return true;
             }
         });
@@ -235,6 +269,25 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra(entry.getKey(), entry.getValue());
         }
         startActivity(intent);
+    }
+
+    public void tagClick(View tagItem)
+    {
+        TextView tagTextItem = (TextView) tagItem;
+        String tagText = tagTextItem.getText().toString().toLowerCase();
+        if (selectedTags.contains(tagText))
+        {
+            selectedTags.remove(tagText);
+            tagTextItem.setBackgroundColor(Color.TRANSPARENT);
+        }
+        else
+        {
+            selectedTags.add(tagText);
+            tagTextItem.setBackgroundColor(Color.argb(128, 32, 32, 128));
+        }
+        ListView recipeListView = (ListView) findViewById(R.id.recipe_list);
+        String allTags = TextUtils.join(",", selectedTags);
+        ((EditListAdapter)recipeListView.getAdapter()).getFilter().filter(EditListAdapter.FILTER_TAGS + allTags);
     }
 
     @SuppressWarnings("unchecked")

@@ -70,7 +70,6 @@ public class PDFDisplayActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         setImage(pdfImage);
-                        //pdfImage.recycle();
                         ViewGroup layout = (ViewGroup)findViewById(R.id.pdf_layout);
                         layout.removeView(findViewById(R.id.text_dot_loader));
                         layout.invalidate();
@@ -293,6 +292,7 @@ public class PDFDisplayActivity extends AppCompatActivity {
                 trimmedBitmap = Bitmap.createBitmap(newBm, bmWidth, bmHeight - offset, Bitmap.Config.ARGB_4444);
             }*/
         }
+        //return trimmedBitmap;
         return bm;
     }
 }
