@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -84,7 +83,7 @@ public class EditListAdapter extends BaseAdapter implements Filterable {
         }
         else
         {
-            textView.setTextColor(Color.DKGRAY);
+            textView.setTextColor(Color.argb(128, 68, 68, 68));
             ((ViewGroup)vi).removeView(pdfImage);
             textView.setOnClickListener(MainActivity.addRecipe);
         }

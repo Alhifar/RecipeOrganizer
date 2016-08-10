@@ -2,7 +2,6 @@ package com.crimbogrotto.alhifar.recipeorganizer.activity;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -13,41 +12,32 @@ import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.support.annotation.NonNull;
+import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.crimbogrotto.alhifar.recipeorganizer.adapter.EditListAdapter;
 import com.crimbogrotto.alhifar.recipeorganizer.R;
+import com.crimbogrotto.alhifar.recipeorganizer.adapter.EditListAdapter;
 import com.crimbogrotto.alhifar.recipeorganizer.db.RecipeContract;
 import com.crimbogrotto.alhifar.recipeorganizer.db.RecipeDbHelper;
 import com.crimbogrotto.alhifar.recipeorganizer.db.TagContract;
 import com.crimbogrotto.alhifar.recipeorganizer.utils.StringUtils;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
