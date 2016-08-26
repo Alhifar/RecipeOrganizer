@@ -9,7 +9,7 @@ public class TagContract {
     public TagContract(){}
 
     public static final String SQL_CREATE_ENTRIES =
-            "CREATE TABLE " + TagEntry.TABLE_NAME + " (" +
+            "CREATE TABLE IF NOT EXISTS " + TagEntry.TABLE_NAME + " (" +
                     TagEntry._ID + " INTEGER PRIMARY KEY," +
                     TagEntry.COLUMN_NAME_TITLE + " TEXT" +
                     ")";

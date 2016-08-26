@@ -9,7 +9,7 @@ public class RecipeContract {
     public RecipeContract(){}
 
     public static final String SQL_CREATE_ENTRIES =
-            "CREATE TABLE " + RecipeEntry.TABLE_NAME + " (" +
+            "CREATE TABLE IF NOT EXISTS " + RecipeEntry.TABLE_NAME + " (" +
                     RecipeEntry._ID + " INTEGER PRIMARY KEY," +
                     RecipeEntry.COLUMN_NAME_TITLE + " TEXT," +
                     RecipeEntry.COLUMN_NAME_TAGS + " TEXT," +
