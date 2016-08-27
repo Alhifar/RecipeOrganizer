@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
         verifyStoragePermissions(this);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.main_toolbar);
+        toolbar.setTitleTextColor(Color.WHITE);
         setSupportActionBar(toolbar);
 
         Bitmap deleteImage = BitmapFactory.decodeResource(getResources(), android.R.drawable.ic_delete);
@@ -132,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
                 RecipeContract.RecipeEntry.COLUMN_NAME_FILENAME
         };
 
-        String sortOrder = RecipeContract.RecipeEntry.COLUMN_NAME_TITLE + " DESC";
+        String sortOrder = RecipeContract.RecipeEntry.COLUMN_NAME_TITLE + " ASC";
 
         try(Cursor c = db.query(RecipeContract.RecipeEntry.TABLE_NAME, projection, null, null, null, null, sortOrder))
         {
